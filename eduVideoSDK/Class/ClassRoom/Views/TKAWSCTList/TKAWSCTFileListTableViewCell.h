@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @protocol listCTProtocol <NSObject>
-- (void)watchFile:(UIButton *)aButton courseware:(NSString*)sCourseWare level:(NSString*)sLevel;
+- (void)watchFile:(UIButton *)aButton courseware:(NSString*)sCourseWare level:(NSString*)sLevel totalpage:(int)totalPage;
 
 @end
 
@@ -23,7 +23,7 @@
 
 @property (nonatomic, assign) BOOL hiddenDeleteBtn;
 
--(void)configaration:(NSString*)courseware level:(NSString*)courseLevel;
+-(void)configaration:(NSString*)courseware level:(NSString*)courseLevel totalpage:(int)totalPage;
 
 @end
 

@@ -170,6 +170,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,strong) TKMediaDocModel    *iPreMediaDocModel;
 @property (nonatomic,strong) TKDocmentDocModel  *iCurrentDocmentModel;
 @property (nonatomic,strong) NSString           *iSelCoursewarePath;
+@property (nonatomic,strong) NSString           *iSelWhiteBoardFileId;
+@property (nonatomic,strong) NSMutableDictionary*iSelCoursewareMutableDic;
+@property (nonatomic,assign) int iSelCoursewareTotalpage; 
 @property(nonatomic,strong)  UIView *iDocumentListView;
 @property(nonatomic,strong)  UIView *iMediaListView;
 @property (nonatomic,strong) NSMutableArray     *iDocmentMutableArray;

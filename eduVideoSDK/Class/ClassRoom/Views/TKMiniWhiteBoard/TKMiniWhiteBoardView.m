@@ -14,8 +14,8 @@
 #define ThemeKP(args) [@"TKNativeWB.LightWB." stringByAppendingString:args]
 #define allTrim( object ) [object stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet] ]
 
-NSString *const S3BucketName = @"tutorathome-test";
-//NSString *const S3BucketName = @"tutorathome";
+//NSString *const S3BucketName = @"tutorathome-test";
+NSString *const S3BucketName = @"tutorathome";
 NSString *const CoursewareJson = @"courseware.json";
 NSString *const RoomDirectory = @"classroom";
 NSString *const SpaceReplace = @"&#&";
@@ -501,10 +501,10 @@ typedef enum {
     
     if (blackBoardState != nil) {
         if (filedata != nil) {
-            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : sBlackBoardCommon, @"currentTapPage" : currentPage, @"fromID" : [TKEduSessionHandle shareInstance].localUser.peerID,
+            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : currentTapKey, @"currentTapPage" : currentPage, sFromID : [TKEduSessionHandle shareInstance].localUser.peerID,
                 @"filedata" : filedata} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
         } else {
-            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : sBlackBoardCommon, @"currentTapPage" : currentPage} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
+            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : currentTapKey, @"currentTapPage" : currentPage} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
         }
     }
 }
@@ -576,7 +576,7 @@ typedef enum {
     
     if (blackBoardState != nil) {
         if (filedata != nil) {
-            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : student.ID, @"currentTapPage" : currentPage, @"fromID" : [TKEduSessionHandle shareInstance].localUser.peerID,
+            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : student.ID, @"currentTapPage" : currentPage, sFromID : [TKEduSessionHandle shareInstance].localUser.peerID,
                 @"filedata" : filedata} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
         } else {
             [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:sBlackBoard_new ID:sBlackBoard_new To:sTellAll Data:@{@"blackBoardState" : blackBoardState, @"currentTapKey" : student.ID, @"currentTapPage" : currentPage} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
@@ -777,6 +777,9 @@ typedef enum {
         UIGraphicsBeginImageContextWithOptions(_tkDrawView.frame.size, NO, 0);
         [backImage drawInRect:targetRect];
         UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+        if (image == nil) {
+            image = UIGraphicsGetImageFromCurrentImageContext();
+        }
         UIGraphicsEndImageContext();
 
         UIColor *backColor = [UIColor colorWithPatternImage:image];
@@ -797,26 +800,23 @@ typedef enum {
     NSString *downloadKey = [NSString stringWithFormat:@"courseware/%@", fileName];
     NSString *urlPath = [self getLocalFilePath:[NSString stringWithFormat:@"%@", fileName]];
     
-    //NSFileManager *fileManager = [NSFileManager defaultManager];
-    //if ([fileManager fileExistsAtPath:urlPath]){
-    //    [self showDialog];
-    //} else {
-        [self downloadFileFromAWS:downloadKey filePath:urlPath dataType:MATERIAL_JSON saveFileId:@""];
-    //}
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if ([fileManager fileExistsAtPath:urlPath]){
+        NSError *error = nil;
+        [fileManager removeItemAtPath:urlPath error:&error];
+        NSLog(@"delete error: %@", error);
+    }
+    
+    [self downloadFileFromAWS:downloadKey filePath:urlPath dataType:MATERIAL_JSON saveFileId:@""];
 }
 
 - (void)downloadCoursewareFromAWS {
     
     NSString *coursewarePath = [TKEduSessionHandle shareInstance].iSelCoursewarePath;
+    
     if (coursewarePath != nil) {
-        NSString *filePath = [NSString stringWithFormat:@"courseware/%@", coursewarePath];
-        [self listAmazonFoldersAtPath:filePath completion:^(BOOL success, NSMutableArray *filesArray) {
-            if (success) {
-                int numOfFiles = (int)[filesArray count];
-                [self sendMaterialsInfo:coursewarePath totalNumber:numOfFiles pageId:1 isNewData:YES];
-            }
-        }];
-    }
+        int numOfFiles = [TKEduSessionHandle shareInstance].iSelCoursewareTotalpage;
+        [self sendMaterialsInfo:coursewarePath totalNumber:numOfFiles pageId:1 isNewData:YES];    }
 }
 
 - (void)showDialog {
@@ -831,6 +831,7 @@ typedef enum {
             if (materialArray != nil && [materialArray count] > 0) {
                 
                 if (self.coursewareButtonClickBlock) {
+                    [TKEduSessionHandle shareInstance].iSelWhiteBoardFileId = [_tkDrawView fileid];
                     self.coursewareButtonClickBlock(_cloudBtn, materialArray);
                 }
             }
@@ -907,9 +908,15 @@ typedef enum {
     }
     
     [dic setObject:stateString forKey:sBlackBoardState];
-    [dic setObject:[_tkDrawView fileid] forKey:sCurrentTapKey];
+    
+    if ([TKEduSessionHandle shareInstance].localUser.role == TKUserType_Teacher || [TKEduSessionHandle shareInstance].localUser.role == TKUserType_Playback) {
+        [dic setObject:[_tkDrawView fileid] forKey:sCurrentTapKey];
+    } else if (_mCurrentTapKey != nil){
+        [dic setObject:_mCurrentTapKey forKey:sCurrentTapKey];
+    }
+   
     [dic setObject:[NSNumber numberWithInt:currentPage] forKey:sCurrentTapPage];
-    [dic setObject:[TKEduSessionHandle shareInstance].localUser.peerID forKey:sFromId];
+    [dic setObject:[TKEduSessionHandle shareInstance].localUser.peerID forKey:sFromID];
     
     NSMutableDictionary *filedata = [[NSMutableDictionary alloc] init];
     [filedata setObject:[NSNumber numberWithInt:currentPage] forKey:sCurrPage];
@@ -965,7 +972,7 @@ typedef enum {
     NSMutableDictionary *dic = [NSJSONSerialization JSONObjectWithData:shapeData options:NSJSONReadingMutableContainers error:nil];
 
     if ([TKEduSessionHandle shareInstance].localUser.role == TKUserType_Teacher) {
-        [dic setObject:_tkDrawView.fileid forKey:@"whiteboardID"];
+        [dic setObject:_tkDrawView.fileid forKey:sWhiteboardID];
         switch (self.state) {
             case TKMiniWhiteBoardStateDispenseed:
 
@@ -995,7 +1002,7 @@ typedef enum {
     }
     
     if ([TKEduSessionHandle shareInstance].localUser.role == TKUserType_Student) {
-        [dic setObject:[TKEduSessionHandle shareInstance].localUser.peerID forKey:@"whiteboardID"];
+        [dic setObject:[TKEduSessionHandle shareInstance].localUser.peerID forKey:sWhiteboardID];
         [dic setObject:@(NO) forKey:@"isBaseboard"];
     }
     
@@ -1076,7 +1083,6 @@ typedef enum {
     } else if ([dataObject isKindOfClass:[NSString class]]) {
         NSError *error;
         data = [NSJSONSerialization JSONObjectWithData:[(NSString *)dataObject dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error];
-        NSLog(@"error: %@", error);
     }
     
     //大并发教室
@@ -1092,6 +1098,12 @@ typedef enum {
             [self clear];
             [_prepareData removeAllObjects];
             return;
+        }
+    }
+    
+    if (data != nil) {
+        if ([data objectForKey:sCurrentTapKey] != nil) {
+            _mCurrentTapKey = [data objectForKey:sCurrentTapKey];
         }
     }
     
@@ -1233,8 +1245,8 @@ typedef enum {
         if ([data objectForKey:sCurrentTapPage]) {
             pageIndex = [[data objectForKey:sCurrentTapPage] intValue];
         }
+
         if ([msgName isEqualToString:sSharpsChange]) {
-            //NSString *fileID = [data objectForKey:sWhiteboardID];
             
             NSNumber *isBaseboard = [data objectForKey:@"isBaseboard"];
             if (isBaseboard.boolValue) {
@@ -1320,8 +1332,19 @@ typedef enum {
         }
     }
     
-    if ([msgName isEqualToString:sShowBoardPage]) {
-        NSString *currentTapKey = [data objectForKey:sCurrentTapKey];
+    if ([msgName isEqualToString:sShowBoardPage] || [msgName isEqualToString:sBlackBoard_new]) {
+        NSString *classLoadID;
+        NSString *fromID = [data objectForKey:sFromID];
+        
+        NSString *teacherUserID = [TKEduSessionHandle shareInstance].iTeacherUser.peerID;
+        NSLog(@"TeacherUser: %@", teacherUserID);
+        
+        if (teacherUserID == nil || [fromID isEqualToString:teacherUserID]) {
+            classLoadID = _mCurrentTapKey;
+        } else {
+            classLoadID = fromID;
+        }
+
         NSDictionary *fileData = [data objectForKey:sFileData];
         if (fileData) {
             NSNumber *currentPage = [fileData objectForKey:sCurrPage];
@@ -1329,11 +1352,11 @@ typedef enum {
             NSString *className = [fileData objectForKey:sCourseWare];
             NSString *swfpath = [fileData objectForKey:sSwfPath];
             NSNumber *isClearDrawing = [fileData objectForKey:sClearDrawing];
-            NSNumber *prevTotalNumber = [_totalNumbers objectForKey:currentTapKey];
+            NSNumber *prevTotalNumber = [_totalNumbers objectForKey:classLoadID];
             
-            [_pageIndexs setObject:currentPage forKey:currentTapKey];
-            [_classNames setObject:className forKey:currentTapKey];
-            [_totalNumbers setObject:totalNumber forKey:currentTapKey];
+            [_pageIndexs setObject:currentPage forKey:classLoadID];
+            [_classNames setObject:className forKey:classLoadID];
+            [_totalNumbers setObject:totalNumber forKey:classLoadID];
             
             NSString *fileName = [NSString stringWithFormat:@"%03d.%@", [currentPage intValue], @"jpg"];
             NSString *classPath = [className stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
@@ -1342,31 +1365,31 @@ typedef enum {
             BOOL isLoadedImageFromFile = NO;
             if ([fileManager fileExistsAtPath:urlPath]) {
                 NSData* data = [NSData dataWithContentsOfFile:urlPath];
-                [self loadImageFromData:data saveFileId:currentTapKey];
+                [self loadImageFromData:data saveFileId:classLoadID];
                 isLoadedImageFromFile = YES;
             } else {
-                if ([currentTapKey isEqualToString:[_tkDrawView fileid]]) {
+                if ([classLoadID isEqualToString:[_tkDrawView fileid]]) {
                      [[TKEduSessionHandle shareInstance] configureHUD:@"" aIsShow:YES];
                 }
                
                 NSString *downloadKey = [NSString stringWithFormat:@"%@%@", swfpath, fileName];
-                [self downloadFileFromAWS:downloadKey filePath:urlPath dataType:BACK_IMAGE saveFileId:currentTapKey];
+                [self downloadFileFromAWS:downloadKey filePath:urlPath dataType:BACK_IMAGE saveFileId:classLoadID];
             }
             
             if ([isClearDrawing intValue] == 1) {
                 if (prevTotalNumber != nil) {
                     for (int i = 0; i < [prevTotalNumber intValue]; i++) {
-                        [_tkDrawView clearOnePageWithFileID:currentTapKey pageNum:i];
+                        [_tkDrawView clearOnePageWithFileID:classLoadID pageNum:i];
                     }
                     
-                    if ([currentTapKey isEqualToString:[_tkDrawView fileid]]) {
+                    if ([classLoadID isEqualToString:[_tkDrawView fileid]]) {
                         [_tkDrawView clearTemporaryData];
                     }
                 }
             }
-            
-            if ([currentTapKey isEqualToString:[_tkDrawView fileid]]) {
-                [_tkDrawView switchToFileID:currentTapKey pageID:[currentPage intValue] refreshImmediately:YES];
+
+            if ([classLoadID isEqualToString:[_tkDrawView fileid]]) {
+                [_tkDrawView switchToFileID:classLoadID pageID:[currentPage intValue] refreshImmediately:YES];
             }
         }
     }

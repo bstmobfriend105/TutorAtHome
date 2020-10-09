@@ -246,8 +246,13 @@
     cell.iIndexPath = indexPath;
     tCell = cell;
 
-    NSString *sCourseware = [tmpArray objectAtIndex:indexPath.row];
-    [cell configaration:sCourseware level:courseLevel];
+ //   NSString *sCourseware = [tmpArray objectAtIndex:indexPath.row];
+   // NSString *sCourse = [tmpArray objectAtIndex:indexPath.row];
+    NSDictionary *data = [tmpArray objectAtIndex:indexPath.row];
+    NSString *sCourseware = [data objectForKey:@"name"];
+    NSString *sTotalPage = [data objectForKey:@"totalpage"];
+    int totalPage = [sTotalPage intValue];
+    [cell configaration:sCourseware level:courseLevel totalpage:totalPage];
     
     tCell.selectionStyle = UITableViewCellSelectionStyleNone;
     
@@ -272,8 +277,13 @@
         courseLevel = _nextCourseLevel;
     }
     
-    [self watchFile:aButton courseware:tmpArray[indexPath.row] level:courseLevel];
-}
+    NSDictionary *data = [tmpArray objectAtIndex:indexPath.row];
+    NSString *sCourseware = [data objectForKey:@"name"];
+    NSString *sTotalPage = [data objectForKey:@"totalpage"];
+    
+    int totalPage = [sTotalPage intValue];
+    //[self watchFile:aButton courseware:tmpArray[indexPath.row] level:courseLevel];
+    [self watchFile:aButton courseware:sCourseware level:courseLevel totalpage:totalPage];}
 
 -(void)show:(NSInteger)courseIndex{
     
@@ -348,15 +358,26 @@
 }
 
 #pragma mark - 课件切换
-- (void)watchFile:(UIButton *)aButton courseware:(NSString*)sCourseWare level:(NSString*)sLevel
+- (void)watchFile:(UIButton *)aButton courseware:(NSString*)sCourseWare level:(NSString*)sLevel totalpage:(int)totalPage
 {
 
     if (self.documentDelegate && [self.documentDelegate respondsToSelector:@selector(watchFile)]) {
     }
 
     [aButton setSelected:YES];
-    
+        
     [TKEduSessionHandle shareInstance].iSelCoursewarePath = [NSString stringWithFormat:@"%@/%@", sLevel, sCourseWare];
+    [TKEduSessionHandle shareInstance].iSelCoursewareTotalpage = totalPage;
+    
+    if ([TKEduSessionHandle shareInstance].iSelCoursewareMutableDic == nil) {
+        [TKEduSessionHandle shareInstance].iSelCoursewareMutableDic = [[NSMutableDictionary alloc] init];
+    }
+    
+    if ([TKEduSessionHandle shareInstance].iSelWhiteBoardFileId != nil) {
+        [[TKEduSessionHandle shareInstance].iSelCoursewareMutableDic setObject:[TKEduSessionHandle shareInstance].iSelCoursewarePath
+                                                                        forKey:[TKEduSessionHandle shareInstance].iSelWhiteBoardFileId];
+    }
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:sLoadAWSCourseware object:nil];
     
     /*TKDocmentDocModel *tDocmentDocModel = model;//[tmpArray objectAtIndex:aIndexPath.row];

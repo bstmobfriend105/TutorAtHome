@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "-[TKMiniWhiteBoardView handleSignal:isDel:]:TKMiniWhiteBoardView.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "dictionary">
+            </PersistentString>
+            <PersistentString
+               value = "[_tkDrawView fileid]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[TKMiniWhiteBoardView loadImageFromData:saveFileId:]:TKMiniWhiteBoardView.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "[_tkDrawView fileid]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

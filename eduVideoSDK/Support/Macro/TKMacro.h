@@ -143,6 +143,7 @@ static  NSString *const sLoadAWSCourseware          = @"LoadAWSCourseware";
 static  NSString *const sWBPageCount                = @"WBPageCount";//加页
 static  NSString *const sShowPage                   = @"ShowPage";//显示文档
 static  NSString *const sShowBoardPage              = @"ShowBlackBoardPage";
+static  NSString *const sFromID                     = @"fromID";
 static  NSString *const sDocumentFilePage_ShowPage  = @"DocumentFilePage_ShowPage";//ShowPage ID
 static  NSString *const sActionShow                 = @"show";
 static  NSString *const sSharpsChange               = @"SharpsChange";//画笔

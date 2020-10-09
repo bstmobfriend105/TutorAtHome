@@ -26,6 +26,7 @@
 {
     NSString *_sCourseware;
     NSString *_sCourseLevel;
+    int _TotalPage;
 }
 
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
@@ -82,22 +83,32 @@
 - (IBAction)watchClick:(UIButton *)sender {
     
     if (self.delegate && [self.delegate respondsToSelector:@selector(watchFile:courseware:level:)]) {
-        [self.delegate watchFile:sender courseware:_sCourseware level:_sCourseLevel];
+        [self.delegate watchFile:sender courseware:_sCourseware level:_sCourseLevel totalpage: _TotalPage];
     }
 }
 
--(void)configaration:(NSString*)courseware level:(NSString*)courseLevel {
+-(void)configaration:(NSString*)courseware level:(NSString*)courseLevel totalpage:(int)totalPage{
     
     _watchBtn.sakura.image(ThemeKP(@"close_eyes"),UIControlStateNormal);
     _watchBtn.sakura.image(ThemeKP(@"open_eyes"),UIControlStateSelected);
        
     BOOL tIsCurrentDocment = false;
     NSString *coursewarePath = [NSString stringWithFormat:@"%@/%@", courseLevel, courseware];
-    if ([coursewarePath isEqual:[TKEduSessionHandle shareInstance].iSelCoursewarePath]) {
+    
+    NSString *selCoursewarePath;
+    if ([TKEduSessionHandle shareInstance].iSelCoursewareMutableDic != nil &&
+        [TKEduSessionHandle shareInstance].iSelWhiteBoardFileId != nil) {
+        selCoursewarePath = [[TKEduSessionHandle shareInstance].iSelCoursewareMutableDic objectForKey:[TKEduSessionHandle shareInstance].iSelWhiteBoardFileId];
+    } else {
+        selCoursewarePath = [TKEduSessionHandle shareInstance].iSelCoursewarePath;
+    }
+    
+    if ([coursewarePath isEqual:selCoursewarePath]) {
         tIsCurrentDocment = true;
     }
     _sCourseware = courseware;
     _sCourseLevel = courseLevel;
+    _TotalPage = totalPage;
     _watchBtn.selected = tIsCurrentDocment;
     _nameLabel.text = courseware;
     _iconImageView.image = [UIImage imageNamed:@"icon_weizhi"];

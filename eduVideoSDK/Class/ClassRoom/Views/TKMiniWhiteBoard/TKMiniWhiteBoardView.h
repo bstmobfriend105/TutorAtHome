@@ -36,6 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign, getter=isBigRoom) BOOL bigRoom;           //小白板是否是大并发教室
 
 @property (nonatomic, strong) NSString *loginuserid;
+@property (nonatomic, strong) NSString *mCurrentTapKey;
 @property (nonatomic, strong) NSMutableDictionary *classNames;
 @property (nonatomic, strong) NSMutableDictionary *pageIndexs;
 @property (nonatomic, strong) NSMutableDictionary *totalNumbers;
