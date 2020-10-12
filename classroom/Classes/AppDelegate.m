@@ -40,10 +40,14 @@
     AWSCognitoCredentialsProvider *credentialsProvider = [[AWSCognitoCredentialsProvider alloc]
                                                           initWithRegionType:AWSRegionAPSoutheast1 identityPoolId:@"ap-southeast-1:dbe08418-e7ea-4084-bddf-5b829ef5972d"];
 
-    AWSServiceConfiguration *configuration = [[AWSServiceConfiguration alloc] initWithRegion:AWSRegionAPSoutheast1
+    AWSServiceConfiguration *configuration = [[AWSServiceConfiguration alloc] initWithRegion:AWSRegionAPEast1
                                                                      credentialsProvider:credentialsProvider];
-
-    AWSServiceManager.defaultServiceManager.defaultServiceConfiguration = configuration;
+    
+    AWSS3TransferUtilityConfiguration *transferConfiguration = [AWSS3TransferUtilityConfiguration new];
+    transferConfiguration.timeoutIntervalForResource = 10;
+    
+    [AWSS3TransferUtility registerS3TransferUtilityWithConfiguration:configuration transferUtilityConfiguration:transferConfiguration  forKey:@"custom-timeout"];
+    //AWSServiceManager.defaultServiceManager.defaultServiceConfiguration = configuration;
     
     return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }

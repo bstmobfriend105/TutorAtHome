@@ -224,6 +224,11 @@ typedef enum {
                 
         [self setNeedsLayout];
         [self layoutIfNeeded];
+        
+        //for Android teacher
+        if ([TKEduSessionHandle shareInstance].localUser.role == TKUserType_Patrol) {
+            [[TKEduSessionHandle shareInstance] sessionHandlePubMsg:@"RequestCoursewareDisplay" ID:@"RequestCoursewareDisplay" To:sTellAll Data:@{@"role" : @"4"} Save:YES AssociatedMsgID:sClassBegin AssociatedUserID:nil expires:0 completion:nil];
+        }
     }
     
     return self;
@@ -741,7 +746,8 @@ typedef enum {
         });
     };
     
-    AWSS3TransferUtility *transferUtility = [AWSS3TransferUtility defaultS3TransferUtility];
+    AWSS3TransferUtility *transferUtility = [AWSS3TransferUtility S3TransferUtilityForKey:@"custom-timeout"];
+    //AWSS3TransferUtility *transferUtility = [AWSS3TransferUtility defaultS3TransferUtility];
     [[transferUtility downloadToURL:[NSURL fileURLWithPath:urlPath]
                              bucket:S3BucketName
                                 key:downloadKey
